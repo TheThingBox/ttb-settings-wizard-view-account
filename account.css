@@ -1,0 +1,19 @@
+.account_container {
+  min-width: 400px;
+}
+
+.account_hide_on_already_exist {
+  display: none;
+  margin-bottom: 0px
+}
+
+.account_hide_on_already_exist.is-visible {
+  display: block;
+  margin-bottom: 20px
+}
+
+@media (max-width: 600px) {
+  .account_container {
+    min-width: 200px;
+  }
+}
