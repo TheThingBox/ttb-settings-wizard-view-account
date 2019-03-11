@@ -1,0 +1,20 @@
+{
+  "name": "Account",
+  "not_set": "not set",
+  "use_existing": "I already have an account",
+  "login": "Login",
+  "password": "Password",
+  "password_confirmation": "Password confirmation",
+  "mail": "Email",
+  "firstname": "Firstname",
+  "lastname": "Lastname",
+  "isok_login_corpus": "your login is empty",
+  "isok_password_corpus": "password is empty",
+  "isok_mail_corpus": "your email is empty",
+  "isok_mail_corpus_invalid": "your email is not valid",
+  "isok_firstname_corpus": "firstname is empty",
+  "isok_lastname_corpus": "lastname is empty",
+  "isok_password_confirmation_corpus": "there is a diff between your password and your password confirmation",
+  "resumed_ignore": "No account will be linked to this device.",
+  "resumed_use_existing": "You will use the existing account for <b>%{login}</b>."
+}

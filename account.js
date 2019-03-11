@@ -1,193 +1,226 @@
-_wizard_view_account_index = params.views.findIndex(v => v.name === 'account')
-
-ejs.renderFile(
-  params.views[_wizard_view_account_index].ejs,
-  Object.assign({
-    viewIndex: _wizard_view_account_index
-  }, params),
-  { async: false },
-  (_err, _str) => {
-    document.getElementById('wizard_account').innerHTML = _str
-
-    form_params.account = {}
-    form_params.account.useAlreadyExist = false
-    form_params.account.login = ''
-    form_params.account.mail = ''
-    form_params.account.firstname = ''
-    form_params.account.lastname = ''
-    form_params.account.pwd = ''
-    form_params.account.pwdConfirmation = ''
-    form_params.account._willShowErrors = null
-
-    document.getElementById("wizard_account_form_exist").addEventListener('input', accountExistChange);
-    document.getElementById("wizard_account_form_login").addEventListener('input', accountLoginChange);
-    document.getElementById("wizard_account_form_mail").addEventListener('input', accountMailChange);
-    document.getElementById("wizard_account_form_firstname").addEventListener('input', accountFirstnameChange);
-    document.getElementById("wizard_account_form_lastname").addEventListener('input', accountLastnameChange);
-    document.getElementById("wizard_account_form_psswrd").addEventListener('input', accountPasswordChange);
-    document.getElementById("wizard_account_form_psswrd_confirmtn").addEventListener('input', accountPasswordConfirmationChange);
-
+var VIEW_ACCOUNT = function() {
+  var Account = function(options) {
+    this.type = Account.type
+    this.tab_name = this.type
+    this.tab_id = `tab_${this.type}`
+    this.navtab_id = `navtab_${this.type}`
+    this.main_container_id = `wizard_${this.type}`
+    this.index = modules.findIndex(m => m.type === this.type)
+    this.params = Object.assign({}, params.views[this.index])
+    this.lang = {}
+    this.view = ''
+    this.form = {}
   }
-)
 
-params.views[_wizard_view_account_index].post = function(){
-  var request = new Request(params.views[_wizard_view_account_index].api)
+  Account.prototype = new VIEW;
 
-  var ok = params.views[_wizard_view_account_index].isOk()
-  if(!ok){
-    request.setData({})
-  } else {
-    request.setData({
-      login: form_params.account.login,
-      email: form_params.account.mail,
-      password: CryptoJS.SHA512(form_params.account.pwd).toString().toUpperCase(),
-      firstname: form_params.account.firstname,
-      lastname: form_params.account.lastname,
-      useAlreadyExist: form_params.account.useAlreadyExist,
-      deviceName: requestAlive.isLocalUrl()?params.hostname:requestAlive.getHost()
+  Account.prototype.load = function(){
+    return new Promise( (resolve, reject) => {
+      this.getLang()
+      .then( (lang) => {
+        this.lang = i18n.create({ values: lang })
+        return this.getView()
+      })
+      .then( (view) => {
+        var _html = ejs.render(view, { params: this.params, name: this.type, lang: this.lang })
+        if(!_html){
+          throw new Error(`cannot render ${this.params.ejs}`)
+        } else {
+          this.tab_name = this.lang('name')
+          document.getElementById(this.navtab_id).innerHTML = this.tab_name
+          document.getElementById(this.main_container_id).innerHTML = _html
+
+          this.form = {}
+          this.form.useAlreadyExist = false
+          this.form.login = ''
+          this.form.mail = ''
+          this.form.firstname = ''
+          this.form.lastname = ''
+          this.form.pwd = ''
+          this.form.pwdConfirmation = ''
+          this.form._willShowErrors = null
+
+          document.getElementById("wizard_account_form_exist").addEventListener('input', (e) => { this.accountExistChange(e) });
+          document.getElementById("wizard_account_form_login").addEventListener('input', (e) => { this.accountLoginChange(e) });
+          document.getElementById("wizard_account_form_mail").addEventListener('input', (e) => { this.accountMailChange(e) });
+          document.getElementById("wizard_account_form_firstname").addEventListener('input', (e) => { this.accountFirstnameChange(e) });
+          document.getElementById("wizard_account_form_lastname").addEventListener('input', (e) => { this.accountLastnameChange(e) });
+          document.getElementById("wizard_account_form_psswrd").addEventListener('input', (e) => { this.accountPasswordChange(e) });
+          document.getElementById("wizard_account_form_psswrd_confirmtn").addEventListener('input', (e) => { this.accountPasswordConfirmationChange(e) });
+
+          resolve()
+        }
+      })
+      .catch(err => {
+        reject(err)
+      })
     })
   }
-  return request.post()
-}
 
-params.views[_wizard_view_account_index].isOk = function(willShowErrors){
-  _errors = []
+  Account.prototype.post = function(){
+    var request = new Request(this.params.api)
 
-  form_params.account.login = form_params.account.login.trim()
-  form_params.account.mail = form_params.account.mail.trim()
-  form_params.account.firstname = form_params.account.firstname.trim()
-  form_params.account.lastname = form_params.account.lastname.trim()
-
-  if(form_params.account.login === ''){
-    _errors[_errors.length] = { title: 'Login', corpus: 'your login is empty'}
-  }
-
-  if(form_params.account.pwd === ''){
-    _errors[_errors.length] = { title: 'Password', corpus: 'password is empty'}
-  }
-
-  if(form_params.account.useAlreadyExist === false){
-    if(form_params.account.mail === ''){
-      _errors[_errors.length] = { title: 'Email', corpus: 'your email is empty'}
-    } else if(!validateEmail(form_params.account.mail)){
-      _errors[_errors.length] = { title: 'Email', corpus: 'your email is not valid'}
-    }
-
-    if(form_params.account.firstname === ''){
-      _errors[_errors.length] = { title: 'Firstname', corpus: 'firstname is empty'}
-    }
-    if(form_params.account.lastname === ''){
-      _errors[_errors.length] = { title: 'Lastname', corpus: 'lastname is empty'}
-    }
-
-    if(form_params.account.pwd !== form_params.account.pwdConfirmation){
-      _errors[_errors.length] = { title: 'Password confirmation', corpus: 'there is a diff between your password and your password confirmation'}
-    }
-  }
-
-  if(willShowErrors === true || _errors.length === 0){
-    showErrors(_errors, params.views[_wizard_view_account_index].order)
-  }
-
-  if(_errors.length === 0){
-    return true
-  }
-  return false
-}
-
-params.views[_wizard_view_account_index].getResumed = function(){
-  var _html = ''
-  if(form_params.account.ignore){
-    _html =  `The account settings will be ignored`
-  } else {
-    if(form_params.account.useAlreadyExist){
-      _html =  `You will use the existing account for <b>${form_params.account.login}</b>.`
+    if(!this.isOk()){
+      request.setData({})
     } else {
-      var _liStyle = 'background-color: rgba(0, 0, 0, 0); border-bottom-width: 1px;'
-      _html =  `
-  <ul class="collection" style="border-width:0px">
-    <li style="${_liStyle}" class="collection-header"><b>Login</b><br/>${form_params.account.login || 'not set'}</li>
-    <li style="${_liStyle}" class="collection-header"><b>Password</b><br/>${form_params.account.pwd.replace(/./g, "&#183;") || 'not set'}</li>
-    <li style="${_liStyle}" class="collection-header"><b>Email</b><br/>${form_params.account.mail || 'not set'}</li>
-    <li style="${_liStyle}" class="collection-header"><b>Firstname</b><br/>${form_params.account.firstname || 'not set'}</li>
-    <li style="${_liStyle} border-bottom-width: 0px;" class="collection-header"><b>Lastname</b><br/>${form_params.account.lastname || 'not set'}</li>
-  </ul>`
+      request.setData({
+        login: this.form.login,
+        email: this.form.mail,
+        password: CryptoJS.SHA512(this.form.pwd).toString().toUpperCase(),
+        firstname: this.form.firstname,
+        lastname: this.form.lastname,
+        useAlreadyExist: this.form.useAlreadyExist,
+        deviceName: WIZARD.requestAlive.isLocalUrl()?params.hostname:WIZARD.requestAlive.getHost()
+      })
     }
+    return request.post()
   }
-  return _html
-}
 
-function accountExistChange(e){
-  form_params.account.useAlreadyExist = document.getElementById('wizard_account_form_exist').checked
-  var _account_hide_on_already_exist = document.getElementsByClassName("account_hide_on_already_exist");
-  if(_account_hide_on_already_exist){
-    if(form_params.account.useAlreadyExist){
-      for(var i=0, max=_account_hide_on_already_exist.length; i<max; i++){
-        _account_hide_on_already_exist[i].classList.remove('is-visible')
+  Account.prototype.isOk = function(willShowErrors){
+    var _errors = []
+
+    this.form.login = this.form.login.trim()
+    this.form.mail = this.form.mail.trim()
+    this.form.firstname = this.form.firstname.trim()
+    this.form.lastname = this.form.lastname.trim()
+
+    if(this.form.login === ''){
+      _errors[_errors.length] = { title: this.lang('login'), corpus: this.lang('isok_login_corpus')}
+    }
+
+    if(this.form.pwd === ''){
+      _errors[_errors.length] = { title: this.lang('password'), corpus: this.lang('isok_password_corpus')}
+    }
+
+    if(this.form.useAlreadyExist === false){
+      if(this.form.mail === ''){
+        _errors[_errors.length] = { title: this.lang('mail'), corpus: this.lang('isok_mail_corpus')}
+      } else if(!validateEmail(this.form.mail)){
+        _errors[_errors.length] = { title: this.lang('mail'), corpus: this.lang('isok_mail_corpus_invalid')}
       }
-    } else {
-      for(var i=0, max=_account_hide_on_already_exist.length; i<max; i++){
-        _account_hide_on_already_exist[i].classList.add('is-visible')
+
+      if(this.form.firstname === ''){
+        _errors[_errors.length] = { title: this.lang('firstname'), corpus: this.lang('isok_firstname_corpus')}
+      }
+      if(this.form.lastname === ''){
+        _errors[_errors.length] = { title: this.lang('firstname'), corpus: this.lang('isok_firstname_corpus')}
+      }
+
+      if(this.form.pwd !== this.form.pwdConfirmation){
+        _errors[_errors.length] = { title: this.lang('password_confirmation'), corpus: this.lang('isok_password_confirmation_corpus')}
       }
     }
-  }
-  params.views[_wizard_view_account_index].checkButtonNextStats()
-  if(form_params.account._willShowErrors){
-    clearTimeout(form_params.account._willShowErrors)
-  }
-  form_params.account._willShowErrors = setTimeout(() => { params.views[_wizard_view_account_index].isOk(true) }, 3000)
-}
 
-function accountLoginChange(e){
-  form_params.account.login = document.getElementById('wizard_account_form_login').value
-  params.views[_wizard_view_account_index].checkButtonNextStats()
-  if(form_params.account._willShowErrors){
-    clearTimeout(form_params.account._willShowErrors)
-  }
-  form_params.account._willShowErrors = setTimeout(() => { params.views[_wizard_view_account_index].isOk(true) }, 3000)
-}
+    if(willShowErrors === true || _errors.length === 0){
+      this.showErrors(_errors)
+    }
 
-function accountMailChange(e){
-  form_params.account.mail = document.getElementById('wizard_account_form_mail').value
-  params.views[_wizard_view_account_index].checkButtonNextStats()
-  if(form_params.account._willShowErrors){
-    clearTimeout(form_params.account._willShowErrors)
+    if(_errors.length === 0){
+      return true
+    }
+    return false
   }
-  form_params.account._willShowErrors = setTimeout(() => { params.views[_wizard_view_account_index].isOk(true) }, 3000)
-}
 
-function accountFirstnameChange(e){
-  form_params.account.firstname = document.getElementById('wizard_account_form_firstname').value
-  params.views[_wizard_view_account_index].checkButtonNextStats()
-  if(form_params.account._willShowErrors){
-    clearTimeout(form_params.account._willShowErrors)
+  Account.prototype.getResumed = function(){
+    var _html = ''
+    if(this.form.ignore){
+      _html =  this.lang('resumed_ignore')
+    } else {
+      if(this.form.useAlreadyExist){
+        _html =  this.lang('resumed_use_existing', { login: this.form.login })
+      } else {
+        var _liStyle = 'background-color: rgba(0, 0, 0, 0); border-bottom-width: 1px;'
+        _html =  `
+    <ul class="collection" style="border-width:0px">
+      <li style="${_liStyle}" class="collection-header"><b>${this.lang('login')}</b><br/>${this.form.login || this.lang('not_set')}</li>
+      <li style="${_liStyle}" class="collection-header"><b>${this.lang('password')}</b><br/>${this.form.pwd.replace(/./g, "&#183;") || this.lang('not_set')}</li>
+      <li style="${_liStyle}" class="collection-header"><b>${this.lang('mail')}</b><br/>${this.form.mail || this.lang('not_set')}</li>
+      <li style="${_liStyle}" class="collection-header"><b>${this.lang('firstname')}</b><br/>${this.form.firstname || this.lang('not_set')}</li>
+      <li style="${_liStyle} border-bottom-width: 0px;" class="collection-header"><b>${this.lang('lastname')}</b><br/>${this.form.lastname || this.lang('not_set')}</li>
+    </ul>`
+      }
+    }
+    return _html
   }
-  form_params.account._willShowErrors = setTimeout(() => { params.views[_wizard_view_account_index].isOk(true) }, 3000)
-}
 
-function accountLastnameChange(e){
-  form_params.account.lastname = document.getElementById('wizard_account_form_lastname').value
-  params.views[_wizard_view_account_index].checkButtonNextStats()
-  if(form_params.account._willShowErrors){
-    clearTimeout(form_params.account._willShowErrors)
+  Account.prototype.accountExistChange = function(e){
+    this.form.useAlreadyExist = document.getElementById('wizard_account_form_exist').checked
+    var _account_hide_on_already_exist = document.getElementsByClassName("account_hide_on_already_exist");
+    if(_account_hide_on_already_exist){
+      if(this.form.useAlreadyExist){
+        for(var i=0, max=_account_hide_on_already_exist.length; i<max; i++){
+          _account_hide_on_already_exist[i].classList.remove('is-visible')
+        }
+      } else {
+        for(var i=0, max=_account_hide_on_already_exist.length; i<max; i++){
+          _account_hide_on_already_exist[i].classList.add('is-visible')
+        }
+      }
+    }
+    this.checkButtonNextStats()
+    if(this.form._willShowErrors){
+      clearTimeout(this.form._willShowErrors)
+    }
+    this.form._willShowErrors = setTimeout(() => { this.isOk(true) }, 3000)
   }
-  form_params.account._willShowErrors = setTimeout(() => { params.views[_wizard_view_account_index].isOk(true) }, 3000)
-}
 
-function accountPasswordChange(e){
-  form_params.account.pwd = document.getElementById('wizard_account_form_psswrd').value
-  params.views[_wizard_view_account_index].checkButtonNextStats()
-  if(form_params.account._willShowErrors){
-    clearTimeout(form_params.account._willShowErrors)
+  Account.prototype.accountLoginChange = function(e){
+    this.form.login = document.getElementById('wizard_account_form_login').value
+    this.checkButtonNextStats()
+    if(this.form._willShowErrors){
+      clearTimeout(this.form._willShowErrors)
+    }
+    this.form._willShowErrors = setTimeout(() => { this.isOk(true) }, 3000)
   }
-  form_params.account._willShowErrors = setTimeout(() => { params.views[_wizard_view_account_index].isOk(true) }, 3000)
-}
 
-function accountPasswordConfirmationChange(e){
-  form_params.account.pwdConfirmation = document.getElementById('wizard_account_form_psswrd_confirmtn').value
-  params.views[_wizard_view_account_index].checkButtonNextStats()
-  if(form_params.account._willShowErrors){
-    clearTimeout(form_params.account._willShowErrors)
+  Account.prototype.accountMailChange = function(e){
+    this.form.mail = document.getElementById('wizard_account_form_mail').value
+    this.checkButtonNextStats()
+    if(this.form._willShowErrors){
+      clearTimeout(this.form._willShowErrors)
+    }
+    this.form._willShowErrors = setTimeout(() => { this.isOk(true) }, 3000)
   }
-  form_params.account._willShowErrors = setTimeout(() => { params.views[_wizard_view_account_index].isOk(true) }, 3000)
-}
+
+  Account.prototype.accountFirstnameChange = function(e){
+    this.form.firstname = document.getElementById('wizard_account_form_firstname').value
+    this.checkButtonNextStats()
+    if(this.form._willShowErrors){
+      clearTimeout(this.form._willShowErrors)
+    }
+    this.form._willShowErrors = setTimeout(() => { this.isOk(true) }, 3000)
+  }
+
+  Account.prototype.accountLastnameChange = function(e){
+    this.form.lastname = document.getElementById('wizard_account_form_lastname').value
+    this.checkButtonNextStats()
+    if(this.form._willShowErrors){
+      clearTimeout(this.form._willShowErrors)
+    }
+    this.form._willShowErrors = setTimeout(() => { this.isOk(true) }, 3000)
+  }
+
+  Account.prototype.accountPasswordChange = function(e){
+    this.form.pwd = document.getElementById('wizard_account_form_psswrd').value
+    this.checkButtonNextStats()
+    if(this.form._willShowErrors){
+      clearTimeout(this.form._willShowErrors)
+    }
+    this.form._willShowErrors = setTimeout(() => { this.isOk(true) }, 3000)
+  }
+
+  Account.prototype.accountPasswordConfirmationChange = function(e){
+    this.form.pwdConfirmation = document.getElementById('wizard_account_form_psswrd_confirmtn').value
+    this.checkButtonNextStats()
+    if(this.form._willShowErrors){
+      clearTimeout(this.form._willShowErrors)
+    }
+    this.form._willShowErrors = setTimeout(() => { this.isOk(true) }, 3000)
+  }
+
+  Account.type = 'account'
+
+  return Account
+}()
+
+modules.push({type: VIEW_ACCOUNT.type, module: VIEW_ACCOUNT})

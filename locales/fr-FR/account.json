@@ -1,0 +1,20 @@
+{
+  "name": "Compte",
+  "not_set": "non renseigné",
+  "use_existing": "J'ai déjà un compte.",
+  "login": "Identifiant",
+  "password": "Mot de passe",
+  "password_confirmation": "Confirmation du mot de passe",
+  "mail": "Email",
+  "firstname": "Prénom",
+  "lastname": "Nom de famille",
+  "isok_login_corpus": "Votre identifiant n'est pas renseigné.",
+  "isok_password_corpus": "Votre mot de passe n'est pas renseigné.",
+  "isok_mail_corpus": "Votre adresse email n'est pas renseigné.",
+  "isok_mail_corpus_invalid": "L'adresse email renseigné n'est pas valide.",
+  "isok_firstname_corpus": "Votre prénom n'est pas renseigné.",
+  "isok_lastname_corpus": "Votre nom de famille n'est pas renseigné.",
+  "isok_password_confirmation_corpus": "Votre confirmation de mot de passe ne correspond pas au mot de passe renseigné.",
+  "resumed_ignore": "Cet appareil n'aura pas de compte associé.",
+  "resumed_use_existing": "Le compte existant <b>%{login}</b> sera associé à cet appareil."
+}
