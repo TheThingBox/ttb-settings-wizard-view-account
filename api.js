@@ -50,30 +50,37 @@ function init(app, apiToExpose, persistenceDir) {
     }
 
     if(allGood){
-      interface_utils.ZOIB.setAccount(data.login, data.password)
-      interface_utils.ZOIB.login()
-      .then(status => {
-        if(status.message.toUpperCase() === 'OK'){
-          return interface_utils.localCipher(data.password)
+      interface_utils.localCipher(data.password).then(cipheredPassword => {
+        if(data.reachable && data.reachable.zoib === true && data.reachable.coldfacts === true){
+          interface_utils.ZOIB.setAccount(data.login, data.password)
+          interface_utils.ZOIB.login()
+          .then((token, user) => {
+            if(status.message.toUpperCase() === 'OK'){
+              stats.zoib.login = data.login
+              stats.zoib.cipheredPassword = data.cipheredPassword
+              stats.zoib.linked = true
+              syncStats(true)
+              res.json({message: "OK", key: "answer_accepted_loged", params: {
+                firstname: user.firstname.value,
+                lastname: user.lastname.value
+              }})
+            } else {
+              res.json({message: "Error", key: "wrong_zoib_login", params: {}})
+            }
+          })
+          .catch(err => {
+            res.json({message: "Error", key: "answer_not_accepted", params: {}})
+          })
         } else {
-          throw new Error(status.message)
+          stats.zoib.login = data.login
+          stats.zoib.cipheredPassword = data.cipheredPassword
+          stats.zoib.linked = false
+          syncStats(true)
+          res.json({message: "OK", key: "answer_accepted_not_loged", params: {}})
         }
       })
-      .then( cipheredPassword => {
-        res.json(stats)
-      })
-      .catch( err => {
-        var message = err
-        if(err instanceof Error){
-          message = err.message
-        } else if(typeof err.toString === 'function'){
-          message = err.toString()
-        }
-        res.status(500).json({ message: message })
-      })
-
     } else {
-      res.status(403).json({ message: "wrong params" })
+      res.json({message: "Error", key: "answer_not_accepted", params: {}})
     }
   });
 }

@@ -16,5 +16,11 @@
   "isok_lastname_corpus": "lastname is empty",
   "isok_password_confirmation_corpus": "there is a diff between your password and your password confirmation",
   "resumed_ignore": "No account will be linked to this device.",
-  "resumed_use_existing": "You will use the existing account for <b>%{login}</b>."
+  "resumed_use_existing": "You will use the existing account for <b>%{login}</b>.",
+  "answer_not_accepted": "Some of your account settings are missing.",
+  "answer_not_accepted_zoib": "An error occurred linking your account.",
+  "answer_not_accepted_coldfacts": "An error occurred linking your account.",
+  "answer_accepted_not_loged": "Your account was set.",
+  "answer_accepted_loged": "Your account was set and successfully linked to this device.",
+  "wrong_zoib_login": "It seem that your login doesn't match with your password."
 }

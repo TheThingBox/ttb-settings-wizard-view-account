@@ -58,22 +58,30 @@ var VIEW_ACCOUNT = function() {
   }
 
   Account.prototype.post = function(){
-    var request = new Request(this.params.api)
+    return new Promise((resolve, reject) => {
+      params.promisesReachable.get()
+      .then(reachable => {
+        var request = new Request(this.params.api)
+        if(!this.isOk()){
+          request.setData({})
+        } else {
+          request.setData({
+            reachable: reachable,
+            login: this.form.login,
+            email: this.form.mail,
+            password: CryptoJS.SHA512(this.form.pwd).toString().toUpperCase(),
+            firstname: this.form.firstname,
+            lastname: this.form.lastname,
+            useAlreadyExist: this.form.useAlreadyExist,
+            deviceName: WIZARD.requestAlive.isLocalUrl()?params.hostname:WIZARD.requestAlive.getHost()
+          })
+        }
 
-    if(!this.isOk()){
-      request.setData({})
-    } else {
-      request.setData({
-        login: this.form.login,
-        email: this.form.mail,
-        password: CryptoJS.SHA512(this.form.pwd).toString().toUpperCase(),
-        firstname: this.form.firstname,
-        lastname: this.form.lastname,
-        useAlreadyExist: this.form.useAlreadyExist,
-        deviceName: WIZARD.requestAlive.isLocalUrl()?params.hostname:WIZARD.requestAlive.getHost()
+        request.post()
+        .then(resolve)
+        .catch(reject)
       })
-    }
-    return request.post()
+    })
   }
 
   Account.prototype.isOk = function(willShowErrors){
