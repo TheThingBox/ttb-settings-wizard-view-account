@@ -1,13 +1,17 @@
 {
   "name": "Compte",
   "not_set": "non renseigné",
-  "use_existing": "J'ai déjà un compte.",
+  "create_new": "Créer un nouveau compte.",
   "login": "Identifiant",
   "password": "Mot de passe",
   "password_confirmation": "Confirmation du mot de passe",
   "mail": "Email",
   "firstname": "Prénom",
   "lastname": "Nom de famille",
+  "click_unignore": "Clique pour ne plus ignorer cette étape",
+  "account_will_be_used": "Le compte de %{firstname} %{lastname} est utilisé.",
+  "change_account": "Utiliser un autre compte",
+  "keep_account": "Garder le compte utilisé",
   "isok_login_corpus": "Votre identifiant n'est pas renseigné.",
   "isok_password_corpus": "Votre mot de passe n'est pas renseigné.",
   "isok_mail_corpus": "Votre adresse email n'est pas renseigné.",
@@ -16,5 +20,12 @@
   "isok_lastname_corpus": "Votre nom de famille n'est pas renseigné.",
   "isok_password_confirmation_corpus": "Votre confirmation de mot de passe ne correspond pas au mot de passe renseigné.",
   "resumed_ignore": "Cet appareil n'aura pas de compte associé.",
-  "resumed_use_existing": "Le compte existant <b>%{login}</b> sera associé à cet appareil."
+  "resumed_use_linked": "Le compte ne sera pas changé.",
+  "resumed_use_existing": "Le compte existant <b>%{login}</b> sera associé à cet appareil.",
+  "answer_not_accepted": "Certains paramètres de votre compte sont manquants.",
+  "answer_not_accepted_zoib": "Une erreur est survenue lors de la connexion de votre compte.",
+  "answer_not_accepted_coldfacts": "Une erreur est survenue lors de la connexion de votre compte.",
+  "answer_accepted_not_loged": "Votre compte a été configuré mais il semble que nos serveurs soient inaccessibles, nous essaierons de vous connecter plus tard.",
+  "answer_accepted_loged": "Votre compte a été configuré et lié avec succès à cet appareil.",
+  "wrong_zoib_login": "Nous n'avons trouvé aucun compte correspondant au couple identifiant/mot de passe renseigné."
 }

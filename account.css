@@ -12,6 +12,26 @@
   margin-bottom: 20px
 }
 
+.account_hide_on_not_linked {
+  display: none;
+  margin-bottom: 0px
+}
+
+.account_hide_on_not_linked.is-visible {
+  display: block;
+  margin-bottom: 20px
+}
+
+.account_hide_on_linked {
+  display: none;
+  margin-bottom: 0px
+}
+
+.account_hide_on_linked.is-visible {
+  display: block;
+  margin-bottom: 20px
+}
+
 @media (max-width: 600px) {
   .account_container {
     min-width: 200px;

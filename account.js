@@ -31,16 +31,22 @@ var VIEW_ACCOUNT = function() {
           document.getElementById(this.main_container_id).innerHTML = _html
 
           this.form = {}
-          this.form.useAlreadyExist = false
+          this.form.linked = false
+          this.form.linkedFirstname = ''
+          this.form.linkedLastname = ''
+          this.form.changeAccount = true
+          this.form.createNew = false
           this.form.login = ''
           this.form.mail = ''
           this.form.firstname = ''
           this.form.lastname = ''
           this.form.pwd = ''
           this.form.pwdConfirmation = ''
+          this.form.ignore = false
           this.form._willShowErrors = null
 
-          document.getElementById("wizard_account_form_exist").addEventListener('input', (e) => { this.accountExistChange(e) });
+          document.getElementById("wizard_account_change_account").addEventListener('click', (e) => { this.accountChangeAccount(e) });
+          document.getElementById("wizard_account_form_create_new").addEventListener('change', (e) => { this.accountExistChange(e) });
           document.getElementById("wizard_account_form_login").addEventListener('input', (e) => { this.accountLoginChange(e) });
           document.getElementById("wizard_account_form_mail").addEventListener('input', (e) => { this.accountMailChange(e) });
           document.getElementById("wizard_account_form_firstname").addEventListener('input', (e) => { this.accountFirstnameChange(e) });
@@ -59,7 +65,7 @@ var VIEW_ACCOUNT = function() {
 
   Account.prototype.post = function(){
     return new Promise((resolve, reject) => {
-      params.promisesReachable.get()
+      params.promisesReachable
       .then(reachable => {
         var request = new Request(this.params.api)
         if(!this.isOk()){
@@ -72,7 +78,7 @@ var VIEW_ACCOUNT = function() {
             password: CryptoJS.SHA512(this.form.pwd).toString().toUpperCase(),
             firstname: this.form.firstname,
             lastname: this.form.lastname,
-            useAlreadyExist: this.form.useAlreadyExist,
+            createNew: this.form.createNew,
             deviceName: WIZARD.requestAlive.isLocalUrl()?params.hostname:WIZARD.requestAlive.getHost()
           })
         }
@@ -100,7 +106,7 @@ var VIEW_ACCOUNT = function() {
       _errors[_errors.length] = { title: this.lang('password'), corpus: this.lang('isok_password_corpus')}
     }
 
-    if(this.form.useAlreadyExist === false){
+    if(this.form.createNew === true){
       if(this.form.mail === ''){
         _errors[_errors.length] = { title: this.lang('mail'), corpus: this.lang('isok_mail_corpus')}
       } else if(!validateEmail(this.form.mail)){
@@ -119,6 +125,10 @@ var VIEW_ACCOUNT = function() {
       }
     }
 
+    if(this.form.linked === true && this.form.changeAccount === false){
+      _errors = []
+    }
+
     if(willShowErrors === true || _errors.length === 0){
       this.showErrors(_errors)
     }
@@ -132,10 +142,14 @@ var VIEW_ACCOUNT = function() {
   Account.prototype.getResumed = function(){
     var _html = ''
     if(this.form.ignore){
-      _html =  this.lang('resumed_ignore')
+      if(this.form.linked){
+        _html = this.lang('resumed_use_linked', {firstname: this.form.linkedFirstname, lastname: this.form.linkedLastname})
+      } else {
+        _html = this.lang('resumed_ignore')
+      }
     } else {
-      if(this.form.useAlreadyExist){
-        _html =  this.lang('resumed_use_existing', { login: this.form.login })
+      if(!this.form.createNew){
+        _html = this.lang('resumed_use_existing', { login: this.form.login })
       } else {
         var _liStyle = 'background-color: rgba(0, 0, 0, 0); border-bottom-width: 1px;'
         _html =  `
@@ -151,11 +165,77 @@ var VIEW_ACCOUNT = function() {
     return _html
   }
 
+  Account.prototype.loaded = function(){
+    var _flagsRequest = new Request(this.params.api)
+    return new Promise( (resolve, reject) => {
+      _flagsRequest.get().then( flags => {
+        if(flags.zoib.linked === true){
+          document.getElementById("wizard_account_form_login").value = flags.zoib.login
+          this.form.login = flags.zoib.login
+          this.form.linked = true
+          this.form.linkedFirstname = flags.zoib.firstname
+          this.form.linkedLastname = flags.zoib.lastname
+          this.form.changeAccount = false
+          this.form.ignore = true
+          document.getElementById("span_account_will_be_used").innerHTML = this.lang('account_will_be_used', { firstname: flags.zoib.firstname, lastname: flags.zoib.lastname})
+        }
+
+        var _account_hide_on_not_linked = document.getElementsByClassName("account_hide_on_not_linked");
+        if(_account_hide_on_not_linked){
+          if(!this.form.linked){
+            for(var i=0, max=_account_hide_on_not_linked.length; i<max; i++){
+              _account_hide_on_not_linked[i].classList.remove('is-visible')
+            }
+          } else {
+            for(var i=0, max=_account_hide_on_not_linked.length; i<max; i++){
+              _account_hide_on_not_linked[i].classList.add('is-visible')
+            }
+          }
+        }
+        var _account_hide_on_linked = document.getElementsByClassName("account_hide_on_linked");
+        if(_account_hide_on_linked){
+          if(!this.form.changeAccount){
+            for(var i=0, max=_account_hide_on_linked.length; i<max; i++){
+              _account_hide_on_linked[i].classList.remove('is-visible')
+            }
+          } else {
+            for(var i=0, max=_account_hide_on_linked.length; i<max; i++){
+              _account_hide_on_linked[i].classList.add('is-visible')
+            }
+            document.getElementById("wizard_account_form_login").nextElementSibling.classList.add('active')
+          }
+        }
+        this.checkButtonNextStats()
+        resolve()
+      })
+    })
+  }
+
+  Account.prototype.accountChangeAccount = function(e){
+    this.form.changeAccount = !this.form.changeAccount
+    var _account_hide_on_linked = document.getElementsByClassName("account_hide_on_linked");
+    if(_account_hide_on_linked){
+      if(!this.form.changeAccount){
+        document.getElementById("wizard_account_change_account").innerHTML = this.lang('change_account')
+        for(var i=0, max=_account_hide_on_linked.length; i<max; i++){
+          _account_hide_on_linked[i].classList.remove('is-visible')
+        }
+      } else {
+        document.getElementById("wizard_account_change_account").innerHTML = this.lang('keep_account')
+        for(var i=0, max=_account_hide_on_linked.length; i<max; i++){
+          _account_hide_on_linked[i].classList.add('is-visible')
+        }
+        document.getElementById("wizard_account_form_login").nextElementSibling.classList.add('active')
+      }
+    }
+    this.checkButtonNextStats()
+  }
+
   Account.prototype.accountExistChange = function(e){
-    this.form.useAlreadyExist = document.getElementById('wizard_account_form_exist').checked
+    this.form.createNew = document.getElementById('wizard_account_form_create_new').checked
     var _account_hide_on_already_exist = document.getElementsByClassName("account_hide_on_already_exist");
     if(_account_hide_on_already_exist){
-      if(this.form.useAlreadyExist){
+      if(!this.form.createNew){
         for(var i=0, max=_account_hide_on_already_exist.length; i<max; i++){
           _account_hide_on_already_exist[i].classList.remove('is-visible')
         }
@@ -224,6 +304,14 @@ var VIEW_ACCOUNT = function() {
       clearTimeout(this.form._willShowErrors)
     }
     this.form._willShowErrors = setTimeout(() => { this.isOk(true) }, 3000)
+  }
+
+  Account.prototype.unIgnored = function(){
+    if(this.form.linked === true && this.form.changeAccount === false){
+      this.form.ignore = true
+    } else {
+      this.form.ignore = false
+    }
   }
 
   Account.type = 'account'

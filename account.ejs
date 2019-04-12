@@ -3,50 +3,62 @@
   <form action="#" class="col s12 m6 account_container">
     <div class="card ttb-color-light-grey">
       <div class="card-content ttb-color-dark-grey-text">
-        <div class="row">
-          <div class="col s12">
-            <label>
-              <input id="wizard_<%= name %>_form_exist" type="checkbox" class="filled-in"/>
-              <span><%= lang('use_existing') %></span>
-            </label>
-          </div>
-        </div>
-        <div class="row">
+        <div class="row account_hide_on_not_linked">
           <div class="input-field col s12">
-            <input placeholder="" id="wizard_<%= name %>_form_login" type="text" class="validate">
-            <label for="wizard_<%= name %>_form_login"><%= lang('login') %></label>
+            <span id="span_account_will_be_used"></span>
+          </div>
+          <div class="col s12" >
+            <span>
+              <a style="width:100%;" class="waves-effect btn ttb-color-white" id="wizard_<%= name %>_change_account"><%= lang('change_account') %></a>
+            </span>
           </div>
         </div>
-        <div class="row">
-          <div class="input-field col s12">
-            <input placeholder="" id="wizard_<%= name %>_form_psswrd" type="password" class="validate">
-            <label for="wizard_<%= name %>_form_psswrd"><%= lang('password') %></label>
+        <div class="account_hide_on_linked is-visible" >
+          <div class="row">
+            <div class="col s12">
+              <label>
+                <input id="wizard_<%= name %>_form_create_new" type="checkbox" class="filled-in"/>
+                <span><%= lang('create_new') %></span>
+              </label>
+            </div>
           </div>
-        </div>
-        <div class="row account_hide_on_already_exist is-visible">
-          <div class="input-field col s12">
-            <input placeholder="" id="wizard_<%= name %>_form_psswrd_confirmtn" type="password" class="validate">
-            <label for="wizard_<%= name %>_form_psswrd_confirmtn"><%= lang('password_confirmation') %></label>
+          <div class="row">
+            <div class="input-field col s12">
+              <input placeholder="" id="wizard_<%= name %>_form_login" type="text" class="validate"/>
+              <label for="wizard_<%= name %>_form_login"><%= lang('login') %></label>
+            </div>
           </div>
-        </div>
-        <div class="row account_hide_on_already_exist is-visible">
-          <div class="input-field col s12">
-            <input placeholder="" id="wizard_<%= name %>_form_mail" type="email" class="validate">
-            <label for="wizard_<%= name %>_form_mail"><%= lang('mail') %></label>
+          <div class="row">
+            <div class="input-field col s12">
+              <input placeholder="" id="wizard_<%= name %>_form_psswrd" type="password" class="validate"/>
+              <label for="wizard_<%= name %>_form_psswrd"><%= lang('password') %></label>
+            </div>
           </div>
-        </div>
-        <div class="row account_hide_on_already_exist is-visible">
-          <div class="input-field col m6 s12">
-            <input placeholder="" id="wizard_<%= name %>_form_firstname" type="text" class="validate">
-            <label for="wizard_<%= name %>_form_firstname"><%= lang('firstname') %></label>
+          <div class="row account_hide_on_already_exist">
+            <div class="input-field col s12">
+              <input placeholder="" id="wizard_<%= name %>_form_psswrd_confirmtn" type="password" class="validate"/>
+              <label for="wizard_<%= name %>_form_psswrd_confirmtn"><%= lang('password_confirmation') %></label>
+            </div>
           </div>
-          <div class="input-field col m6 s12">
-            <input placeholder="" id="wizard_<%= name %>_form_lastname" type="text" class="validate">
-            <label for="wizard_<%= name %>_form_lastname"><%= lang('lastname') %></label>
+          <div class="row account_hide_on_already_exist">
+            <div class="input-field col s12">
+              <input placeholder="" id="wizard_<%= name %>_form_mail" type="email" class="validate"/>
+              <label for="wizard_<%= name %>_form_mail"><%= lang('mail') %></label>
+            </div>
+          </div>
+          <div class="row account_hide_on_already_exist">
+            <div class="input-field col m6 s12">
+              <input placeholder="" id="wizard_<%= name %>_form_firstname" type="text" class="validate"/>
+              <label for="wizard_<%= name %>_form_firstname"><%= lang('firstname') %></label>
+            </div>
+            <div class="input-field col m6 s12">
+              <input placeholder="" id="wizard_<%= name %>_form_lastname" type="text" class="validate"/>
+              <label for="wizard_<%= name %>_form_lastname"><%= lang('lastname') %></label>
+            </div>
           </div>
         </div>
       </div>
-      <div id="wizard_<%= name %>_ignore_wrapper" class="displayable-60 ignore-wrapper tooltiped" data-position="top" data-tooltip="Click to do not ignore this step anymore">
+      <div id="wizard_<%= name %>_ignore_wrapper" class="displayable-60 ignore-wrapper tooltiped" data-position="top" data-tooltip="<%= lang('click_unignore') %>">
       </div>
     </div>
   </form>

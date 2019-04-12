@@ -19,7 +19,9 @@ var stats = {
   zoib: {
     linked: false,
     login: '',
-    cipheredPassword: ''
+    cipheredPassword: '',
+    firstname: '',
+    lastname: ''
   }
 }
 
@@ -43,7 +45,7 @@ function init(app, apiToExpose, persistenceDir) {
 
     if(!data.login || data.login === '' || !data.password || data.password === '' || !data.deviceName || data.deviceName === ''){
       allGood = false
-    } else if(data.useAlreadyExist === 'false' || data.useAlreadyExist === false){
+    } else if(data.createNew === 'true' || data.createNew === true){
       if(!data.email || data.email === '' || !data.firstname || data.firstname === '' || !data.lastname || data.lastname === ''){
         allGood = false
       }
@@ -54,26 +56,39 @@ function init(app, apiToExpose, persistenceDir) {
         if(data.reachable && data.reachable.zoib === true && data.reachable.coldfacts === true){
           interface_utils.ZOIB.setAccount(data.login, data.password)
           interface_utils.ZOIB.login()
-          .then((token, user) => {
-            if(status.message.toUpperCase() === 'OK'){
+          .then(login => {
+            if(login !== null){
               stats.zoib.login = data.login
-              stats.zoib.cipheredPassword = data.cipheredPassword
+              stats.zoib.cipheredPassword = cipheredPassword
+              stats.zoib.firstname = login.user.firstname.value
+              stats.zoib.lastname = login.user.lastname.value
               stats.zoib.linked = true
+              stats.zoib.error = null
               syncStats(true)
               res.json({message: "OK", key: "answer_accepted_loged", params: {
-                firstname: user.firstname.value,
-                lastname: user.lastname.value
+                firstname: login.user.firstname.value,
+                lastname: login.user.lastname.value
               }})
             } else {
               res.json({message: "Error", key: "wrong_zoib_login", params: {}})
             }
           })
           .catch(err => {
-            res.json({message: "Error", key: "answer_not_accepted", params: {}})
+            stats.zoib.error="no network"
+            stats.zoib.login = data.login
+            stats.zoib.cipheredPassword = cipheredPassword
+            stats.zoib.firstname = ''
+            stats.zoib.lastname = ''
+            stats.zoib.linked = false
+            syncStats(true)
+            res.json({message: "Error", key: "answer_accepted_not_loged", params: {err}})
           })
         } else {
+          stats.zoib.error="no network"
           stats.zoib.login = data.login
-          stats.zoib.cipheredPassword = data.cipheredPassword
+          stats.zoib.cipheredPassword = cipheredPassword
+          stats.zoib.firstname = ''
+          stats.zoib.lastname = ''
           stats.zoib.linked = false
           syncStats(true)
           res.json({message: "OK", key: "answer_accepted_not_loged", params: {}})
